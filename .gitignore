@@ -31,3 +31,9 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Mac
+.DS_Store
+
+# PDF
+Lab_1.pdf
