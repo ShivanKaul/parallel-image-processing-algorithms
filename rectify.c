@@ -17,15 +17,29 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc(width * height * 4 * sizeof(unsigned char));
 
-  // process image
-  for (int i = 0; i < height; i++)
+// process image
+// #pragma omp parallel for num_threads(NUM_THREADS)
+//   for (int i = 0; i < height; i++)
+//   {
+//     for (int j = 0; j < width; j++)
+//     {
+//       new_image[4 * width * i + 4 * j + 0] = rectOp(image[4 * width * i + 4 * j + 0]); // R
+//       new_image[4 * width * i + 4 * j + 1] = rectOp(image[4 * width * i + 4 * j + 1]); // G
+//       new_image[4 * width * i + 4 * j + 2] = rectOp(image[4 * width * i + 4 * j + 2]); // B
+//       new_image[4 * width * i + 4 * j + 3] = image[4 * width * i + 4 * j + 3];         // A
+//     }
+//   }
+
+#pragma omp parallel num_threads(NUM_THREADS)
   {
-    for (int j = 0; j < width; j++)
+    int tid = omp_get_thread_num();
+    int chunk_size = (height * width * 4) / omp_get_num_threads();
+    int start_idx = tid * chunk_size;
+    int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width * 4) : start_idx + chunk_size;
+    int idx;
+    for (idx = start_idx; idx < end_idx; idx++)
     {
-      new_image[4 * width * i + 4 * j + 0] = rectOp(image[4 * width * i + 4 * j + 0]); // R
-      new_image[4 * width * i + 4 * j + 1] = rectOp(image[4 * width * i + 4 * j + 1]); // G
-      new_image[4 * width * i + 4 * j + 2] = rectOp(image[4 * width * i + 4 * j + 2]); // B
-      new_image[4 * width * i + 4 * j + 3] = image[4 * width * i + 4 * j + 3];         // A
+      new_image[idx] = rectOp(image[idx]);
     }
   }
 
@@ -61,7 +75,7 @@ int main(int argc, char *argv[])
     total_time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
   }
   double avg_time_spent = total_time_spent / NUM_REPS;
-  printf("Average time spent in rectify (after running %d times) : %f s", NUM_REPS, avg_time_spent);
+  printf("Average time spent in rectify with %d threads (after running %d times) : %f s", NUM_THREADS, NUM_REPS, avg_time_spent);
 
   return 0;
 }
