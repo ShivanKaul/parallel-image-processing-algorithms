@@ -1,38 +1,31 @@
-/* Example of using lodepng to load, process, save image */
-#include "lodepng.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "rectify.h"
 
 int rectOp(unsigned char i)
 {
-    // printf("rectOp has : %d\n", i);
-    return (i < 127) ? 127 : i;
+  return (i < 127) ? 127 : i;
 }
 
-void process(char* input_filename, char* output_filename, int NUM_THREADS)
+void process(char *input_filename, char *output_filename, int NUM_THREADS)
 {
   unsigned error;
   unsigned char *image, *new_image;
   unsigned width, height;
 
+  // Read in image
   error = lodepng_decode32_file(&image, &width, &height, input_filename);
-  if(error) printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
+  if (error)
+    printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc(width * height * 4 * sizeof(unsigned char));
 
   // process image
-  unsigned char value;
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {	
-
-    	// value = image[4*width*i + 4*j];
-
-	    new_image[4*width*i + 4*j + 0] = rectOp(image[4*width*i + 4*j + 0]); // R
-      // printf("new image 0 has : %d\n", new_image[4*width*i + 4*j + 0]);
-	    new_image[4*width*i + 4*j + 1] = rectOp(image[4*width*i + 4*j + 1]); // G
-      // printf("new image 1 has : %d\n", new_image[4*width*i + 4*j + 1]);
-	    new_image[4*width*i + 4*j + 2] = rectOp(image[4*width*i + 4*j + 2]); // B
-      // printf("new image 2 has : %d\n", new_image[4*width*i + 4*j + 2]);
-	    new_image[4*width*i + 4*j + 3] = image[4*width*i + 4*j + 3]; // A
+  for (int i = 0; i < height; i++)
+  {
+    for (int j = 0; j < width; j++)
+    {
+      new_image[4 * width * i + 4 * j + 0] = rectOp(image[4 * width * i + 4 * j + 0]); // R
+      new_image[4 * width * i + 4 * j + 1] = rectOp(image[4 * width * i + 4 * j + 1]); // G
+      new_image[4 * width * i + 4 * j + 2] = rectOp(image[4 * width * i + 4 * j + 2]); // B
+      new_image[4 * width * i + 4 * j + 3] = image[4 * width * i + 4 * j + 3];         // A
     }
   }
 
@@ -44,14 +37,31 @@ void process(char* input_filename, char* output_filename, int NUM_THREADS)
 
 int main(int argc, char *argv[])
 {
-  if (argc < 4) {
+  if (argc < 4)
+  {
     printf("Incorrect arguments! Input format: ./rectify <name of input png> <name of output png> < # threads> \n");
   }
-  char* input_filename = argv[1];
-  char* output_filename = argv[2];
+  int NUM_REPS = 1;
+  if (argc == 5)
+  {
+    NUM_REPS = atoi(argv[4]);
+  }
+  char *input_filename = argv[1];
+  char *output_filename = argv[2];
   int NUM_THREADS = atoi(argv[3]);
 
-  process(input_filename, output_filename, NUM_THREADS);
+  clock_t begin, end;
+  double total_time_spent = 0.0;
+  int i;
+  for (i = 0; i < NUM_REPS; i++)
+  {
+    begin = clock();
+    process(input_filename, output_filename, NUM_THREADS);
+    end = clock();
+    total_time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+  }
+  double avg_time_spent = total_time_spent / NUM_REPS;
+  printf("Average time spent in rectify (after running %d times) : %f s", NUM_REPS, avg_time_spent);
 
   return 0;
 }
