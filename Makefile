@@ -16,7 +16,10 @@ convolve: convolve.c convolve.h
 convolvemac: convolve.c convolve.h
 	gcc-6 -g  -o convolve convolve.c lodepng.c  -fopenmp
 
-compiletest:
+test:
+	gcc test_equality.c lodepng.c -lm
+
+testmac:
 	gcc test_equality.c lodepng.c
 
 clean:
