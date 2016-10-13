@@ -52,7 +52,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
       if (idx > 0 && idx % 3 == 0) {
         pos += 8;
       }
-      if (pos % width == 0 && (pos / (width * 4)) % 2 == 1) {
+      if (idx % width == 0 && (pos / (width * 4)) % 2 == 1) {
         pos += width * 4;
       }
       int ang = poolOp(image, pos, width);
