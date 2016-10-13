@@ -12,10 +12,9 @@ int rectOp(unsigned char i)
 float multiply_with_weights(unsigned char neighbours[])
 {
   float sum = 0.0;
-  int i, j;
-  for (i = 0; i < 3; i++)
+  for (int i = 0; i < 3; i++)
   {
-    for (j = 0; j < 3; j++)
+    for (int j = 0; j < 3; j++)
     {
       sum += neighbours[i * 3 + j] * w[i][j];
     }
@@ -28,43 +27,8 @@ int get_index_for_new_image(int i, int j, int channel) {
 }
 
 int get_index(int curRow, int curCol, int rowPos, int colPos, int channel) {
-  // printf("\n Channel is %d", channel);
-  // printf("curRow is %d\n", curRow);
-  // printf("curCol is %d\n", curCol);
-  // printf("width is %d\n", width);
-  // printf("rowPos is %d\n", rowPos);
-  // printf("colPos is %d\n", colPos);
-  // printf("Calculating index: %d", (4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol + (4 * colPos)) + channel);
-  // printf("Getting num: %d\n", image[(4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol + (4 * colPos)) + channel]);
   return (4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol + (4 * colPos)) + channel;
 }
-
-// unsigned char* get_neighbours(int curRow, int curCol, int channel) {
-
-//   unsigned char *neighbours = malloc(9 * sizeof(unsigned char));
-//   for (int i = 0; i < 3; i++) {
-//     for (int j = 0; j < 3; j++)
-//     {
-//       neighbours[i]
-//     }
-//   }
-
-
-//   unsigned char neighbours[] = {
-//     image[get_index(curRow, curCol, -1, -1, channel)],
-//     image[get_index(curRow, curCol, -1, 0, channel)],
-//     image[get_index(curRow, curCol, -1, 1, channel)],
-
-//     image[get_index(curRow, curCol, 0, -1, channel)],
-//     image[get_index(curRow, curCol, 0, 0, channel)],
-//     image[get_index(curRow, curCol, 0, 1, channel)],
-
-//     image[get_index(curRow, curCol, 1, -1, channel)],
-//     image[get_index(curRow, curCol, 1, 0, channel)],
-//     image[get_index(curRow, curCol, 1, 1, channel)]
-//   };
-//   return &neighbours;
-// }
 
 int normalize(float num) {
   int normalized = (int)num;
@@ -84,39 +48,8 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc((width - 2) * (height - 2) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
 
-  // check if neighbours logic works
-  // for (int i = 0; i < 3; i++)
-  // {
-  //   for (int j = 0; j < 3; j++)
-  //   {
-  //     printf("R: %d ", image[4 * width * i + 4 * j + 0]);
-  //     // printf("G: %d ", image[4 * width * i + 4 * j + 1]);
-  //     // printf("B: %d ", image[4 * width * i + 4 * j + 2]);
-  //     // printf("A: %d ", image[4 * width * i + 4 * j + 3]);
-  //   }
-  //   printf("\n");
-  // }
-
-  // printf("NOW PRINTING NEIGHBOURS!!!!\n");
-
-
-
-  // test code
-  // height = 4;
-  // width = 4;
-  // unsigned char image[4][4] = {
-  //   -4,-4,-4,-4,  0,0,0,0,  4,4,4,4,  3,3,3,3,
-  //   2,2,2,2,  2,2,2,2,  -1,-1,-1,-1,  -5,-5,-5,-5,
-  //   4,4,4,4,  -1,-1,-1,-1,  0,0,0,0,  0,0,0,0,
-  //   4,4,4,4,  4,4,4,4,  1,1,1,1,  2,2,2,2
-  // };
-
-
-
-
   // process image
   // #pragma omp parallel for num_threads(NUM_THREADS)
-  int counter = 0;
   for (int i = 1; i < height - 1; i++)
   {
     // #pragma omp parallel for num_threads(NUM_THREADS)
@@ -162,86 +95,14 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
         image[get_index(i, j, 1, 0, B)],
         image[get_index(i, j, 1, 1, B)]
       };
-      // unsigned char neighboursA[] =
-      // { image[get_index(i, j, -1, -1, A)],
-      //   image[get_index(i, j, -1, 0, A)],
-      //   image[get_index(i, j, -1, 1, A)],
-
-      //   image[get_index(i, j, 0, -1, A)],
-      //   image[get_index(i, j, 0, 0, A)],
-      //   image[get_index(i, j, 0, 1, A)],
-
-      //   image[get_index(i, j, 1, -1, A)],
-      //   image[get_index(i, j, 1, 0, A)],
-      //   image[get_index(i, j, 1, 1, A)]
-      // };
-
-      // for (int i = 0; i < 3; i++)
-      // {
-      //   for (int j = 0; j < 3; j++)
-      //   {
-      //     printf("R: %d ", neighboursR[i * 3 + j]);
-      //   }
-      //   printf("\n");
-      // }
-
-      // return;
 
 
       new_image[get_index_for_new_image(i, j, R)] = normalize(multiply_with_weights(neighboursR));
-      // counter++;
       new_image[get_index_for_new_image(i, j, G)] = normalize(multiply_with_weights(neighboursG));
-      // counter++;
       new_image[get_index_for_new_image(i, j, B)] = normalize(multiply_with_weights(neighboursB));
-      // counter++;
-      // new_image[get_index_for_new_image(i, j, A)] = normalize(multiply_with_weights(neighboursA));
-      new_image[get_index_for_new_image(i, j, A)] = image[get_index(i, j, 0, 0, A)];
-      // counter++;
-
-
-
-      // new_image[4 * width * i + 4 * j + 0] = convolveOp(i, j, );                       // R
-      // new_image[4 * width * i + 4 * j + 1] = rectOp(image[4 * width * i + 4 * j + 1]); // G
-      // new_image[4 * width * i + 4 * j + 2] = rectOp(image[4 * width * i + 4 * j + 2]); // B
-      // new_image[4 * width * i + 4 * j + 3] = image[4 * width * i + 4 * j + 3];         // A
-      // int blah = 0;
-      // for (; blah < 9; blah++)
-      // {
-      //   printf("%d  ", neighbours[blah]);
-      // }
-      // return;
+      new_image[get_index_for_new_image(i, j, A)] = 255;
     }
   }
-// printf("counter is %d\n", counter);
-  printf("height is %d\n", height);
-  printf("width is %d\n", width);
-  printf("height - 2 x width - 2 * 4 is %d\n", (height - 2) * (width - 2) * 4);
-
-// printf("This is new image:\n");
-
-// for(int i =0; i < height - 2; i++) {
-//   for (int j = 0; j < width -2; j++) {
-//     printf("R: %d ", new_image[i][j+0]);
-//     printf("G: %d ", new_image[i][j+1]);
-//     printf("B: %d ", new_image[i][j+2]);
-//     printf("A: %d ", new_image[i][j+3]);
-//   }
-//   printf("\n");
-// }
-
-
-// #pragma omp parallel num_threads(NUM_THREADS)
-//   {
-//     int tid = omp_get_thread_num();
-//     int chunk_size = (height * width * 4) / omp_get_num_threads();
-//     int start_idx = tid * chunk_size;
-//     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width * 4) : start_idx + chunk_size;
-//     int idx;
-//     for (idx = start_idx; idx < end_idx; idx++)
-//     {
-//       new_image[idx] = rectOp(image[idx]);
-//     }
-//   }
 
   lodepng_encode32_file(output_filename, new_image, width - 2, height - 2);
 
