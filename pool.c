@@ -10,7 +10,7 @@ int poolOp(unsigned char *i, int p, unsigned width)
   } else {
     //printf ("\nIndex is at %i and No need to increment by the width", idx);
   }
-  return MAX(i[p], MAX(i[p + 4], MAX(i[p + width*4], i[p + width*4 + 4])));
+  return MAX(i[p], MAX(i[p + 4], MAX(i[p + (width * 4)], i[p + (width * 4) + 4])));
 }
 
 void process(char *input_filename, char *output_filename, int NUM_THREADS)
@@ -45,25 +45,18 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     int start_idx = tid * chunk_size;
     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width) : start_idx + chunk_size;
     int idx;
-    int pos;
+    int pos = idx;
     for (idx = start_idx; idx < end_idx; idx++)
     {
-      pos = idx;
-      if (idx > 0 && idx % 3 == 0) {
-        pos += 8;
+      if (idx > 0 && idx % 4 == 0) {
+        pos += 4;
       }
-      if (pos % width == 0 && (pos / (width * 4)) % 2 == 1) {
+      if (idx % (width * 2) == 0 && idx != 0) {//(pos / (width * 4)) % 2 == 1) {
         pos += width * 4;
       }
       int ang = poolOp(image, pos, width);
       new_image[idx] = ang;
-      //start_idx++;
-      //new_image[start_idx] = poolOp(image, idx+1, width);
-      //start_idx++;
-      //new_image[start_idx] = poolOp(image, idx+2, width);
-      //start_idx++;
-      //new_image[start_idx] = poolOp(image, idx+3, width);
-      //start_idx++;
+      pos++;
     }
     printf("\n %i \n", idx);
   }
