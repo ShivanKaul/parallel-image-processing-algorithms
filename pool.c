@@ -25,8 +25,8 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     int chunk_size = (height * width) / omp_get_num_threads();
     int start_idx = tid * chunk_size;
     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width) : start_idx + chunk_size;
-    int idx;
-    int pos = idx;
+    int idx = start_idx;
+    int pos = (2 * (idx / (width * 2)) * width * 4) + (2 * (idx % (width * 2)));
     for (idx = start_idx; idx < end_idx; idx++)
     {
       if (idx > 0 && idx % 4 == 0) {
@@ -39,7 +39,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
       new_image[idx] = ang;
       pos++;
     }
-    printf("\n %i \n", idx);
+    //printf("\n %i \n", idx);
   }
 
   lodepng_encode32_file(output_filename, new_image, width/2, height/2);
