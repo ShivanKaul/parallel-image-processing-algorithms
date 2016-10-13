@@ -28,7 +28,15 @@ int get_index_for_new_image(int i, int j, int channel) {
 }
 
 int get_index(int curRow, int curCol, int rowPos, int colPos, int channel) {
-  return (4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol - (4 * colPos)) + channel;
+  // printf("\n Channel is %d", channel);
+  // printf("curRow is %d\n", curRow);
+  // printf("curCol is %d\n", curCol);
+  // printf("width is %d\n", width);
+  // printf("rowPos is %d\n", rowPos);
+  // printf("colPos is %d\n", colPos);
+  // printf("Calculating index: %d", (4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol + (4 * colPos)) + channel);
+  // printf("Getting num: %d\n", image[(4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol + (4 * colPos)) + channel]);
+  return (4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol + (4 * colPos)) + channel;
 }
 
 // unsigned char* get_neighbours(int curRow, int curCol, int channel) {
@@ -68,7 +76,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
 {
   unsigned error;
   unsigned char *new_image;
-  unsigned width, height;
+  unsigned height;
 
   // Read in image
   error = lodepng_decode32_file(&image, &width, &height, input_filename);
@@ -82,9 +90,9 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
   //   for (int j = 0; j < 3; j++)
   //   {
   //     printf("R: %d ", image[4 * width * i + 4 * j + 0]);
-  //     printf("B: %d ", image[4 * width * i + 4 * j + 1]);
-  //     printf("G: %d ", image[4 * width * i + 4 * j + 2]);
-  //     printf("A: %d ", image[4 * width * i + 4 * j + 3]);
+  //     // printf("G: %d ", image[4 * width * i + 4 * j + 1]);
+  //     // printf("B: %d ", image[4 * width * i + 4 * j + 2]);
+  //     // printf("A: %d ", image[4 * width * i + 4 * j + 3]);
   //   }
   //   printf("\n");
   // }
@@ -109,10 +117,10 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
   // process image
   // #pragma omp parallel for num_threads(NUM_THREADS)
   int counter = 0;
-  for (int i = 1; i <= height - 2; i++)
+  for (int i = 1; i < height - 1; i++)
   {
     // #pragma omp parallel for num_threads(NUM_THREADS)
-    for (int j = 1; j <= (width - 2); j++)
+    for (int j = 1; j < width - 1; j++)
     {
       unsigned char neighboursR[] = {
         image[get_index(i, j, -1, -1, R)],
@@ -154,19 +162,30 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
         image[get_index(i, j, 1, 0, B)],
         image[get_index(i, j, 1, 1, B)]
       };
-      unsigned char neighboursA[] =
-      { image[get_index(i, j, -1, -1, A)],
-        image[get_index(i, j, -1, 0, A)],
-        image[get_index(i, j, -1, 1, A)],
+      // unsigned char neighboursA[] =
+      // { image[get_index(i, j, -1, -1, A)],
+      //   image[get_index(i, j, -1, 0, A)],
+      //   image[get_index(i, j, -1, 1, A)],
 
-        image[get_index(i, j, 0, -1, A)],
-        image[get_index(i, j, 0, 0, A)],
-        image[get_index(i, j, 0, 1, A)],
+      //   image[get_index(i, j, 0, -1, A)],
+      //   image[get_index(i, j, 0, 0, A)],
+      //   image[get_index(i, j, 0, 1, A)],
 
-        image[get_index(i, j, 1, -1, A)],
-        image[get_index(i, j, 1, 0, A)],
-        image[get_index(i, j, 1, 1, A)]
-      };
+      //   image[get_index(i, j, 1, -1, A)],
+      //   image[get_index(i, j, 1, 0, A)],
+      //   image[get_index(i, j, 1, 1, A)]
+      // };
+
+      // for (int i = 0; i < 3; i++)
+      // {
+      //   for (int j = 0; j < 3; j++)
+      //   {
+      //     printf("R: %d ", neighboursR[i * 3 + j]);
+      //   }
+      //   printf("\n");
+      // }
+
+      // return;
 
 
       new_image[get_index_for_new_image(i, j, R)] = normalize(multiply_with_weights(neighboursR));
@@ -175,7 +194,8 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
       // counter++;
       new_image[get_index_for_new_image(i, j, B)] = normalize(multiply_with_weights(neighboursB));
       // counter++;
-      new_image[get_index_for_new_image(i, j, A)] = normalize(multiply_with_weights(neighboursA));
+      // new_image[get_index_for_new_image(i, j, A)] = normalize(multiply_with_weights(neighboursA));
+      new_image[get_index_for_new_image(i, j, A)] = image[get_index(i, j, 0, 0, A)];
       // counter++;
 
 
@@ -223,7 +243,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
 //     }
 //   }
 
-  lodepng_encode32_file(output_filename, new_image, width, height);
+  lodepng_encode32_file(output_filename, new_image, width - 2, height - 2);
 
   free(image);
   free(new_image);
@@ -255,7 +275,7 @@ int main(int argc, char *argv[])
     total_time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
   }
   double avg_time_spent = total_time_spent / NUM_REPS;
-  printf("Average time spent in convolve with %d threads (after running %d times) : %f s", NUM_THREADS, NUM_REPS, avg_time_spent);
+  printf("Average time spent in convolve with %d threads (after running %d times) : %f s\n", NUM_THREADS, NUM_REPS, avg_time_spent);
 
   return 0;
 }
