@@ -1,5 +1,9 @@
 #include "convolve.h"
 
+int width;
+unsigned char *image;
+
+
 int rectOp(unsigned char i)
 {
   return (i < 127) ? 127 : i;
@@ -19,6 +23,41 @@ float multiply_with_weights(unsigned char neighbours[])
   return sum;
 }
 
+int get_index_for_new_image(int i, int j, int channel) {
+  return width * 4 * (i - 1) + 4 * (j - 1) + channel;
+}
+
+int get_index(int curRow, int curCol, int rowPos, int colPos, int channel) {
+  return (4 * width * curRow + ((4 * width) * rowPos) ) + (4 * curCol - (4 * colPos)) + channel;
+}
+
+// unsigned char* get_neighbours(int curRow, int curCol, int channel) {
+
+//   unsigned char *neighbours = malloc(9 * sizeof(unsigned char));
+//   for (int i = 0; i < 3; i++) {
+//     for (int j = 0; j < 3; j++)
+//     {
+//       neighbours[i]
+//     }
+//   }
+
+
+//   unsigned char neighbours[] = {
+//     image[get_index(curRow, curCol, -1, -1, channel)],
+//     image[get_index(curRow, curCol, -1, 0, channel)],
+//     image[get_index(curRow, curCol, -1, 1, channel)],
+
+//     image[get_index(curRow, curCol, 0, -1, channel)],
+//     image[get_index(curRow, curCol, 0, 0, channel)],
+//     image[get_index(curRow, curCol, 0, 1, channel)],
+
+//     image[get_index(curRow, curCol, 1, -1, channel)],
+//     image[get_index(curRow, curCol, 1, 0, channel)],
+//     image[get_index(curRow, curCol, 1, 1, channel)]
+//   };
+//   return &neighbours;
+// }
+
 int normalize(float num) {
   int normalized = (int)num;
   normalized = normalized > 255 ? 255 : normalized;
@@ -28,14 +67,13 @@ int normalize(float num) {
 void process(char *input_filename, char *output_filename, int NUM_THREADS)
 {
   unsigned error;
-  // unsigned char *image, *new_image;
-  unsigned char  *new_image;
+  unsigned char *new_image;
   unsigned width, height;
 
   // Read in image
-  // error = lodepng_decode32_file(&image, &width, &height, input_filename);
-  // if (error)
-  //   printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
+  error = lodepng_decode32_file(&image, &width, &height, input_filename);
+  if (error)
+    printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc((width - 2) * (height - 2) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
 
   // check if neighbours logic works
@@ -56,14 +94,14 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
 
 
   // test code
-  height = 4;
-  width = 4;
-  unsigned char image[4][4] = { 
-    -4,-4,-4,-4,  0,0,0,0,  4,4,4,4,  3,3,3,3,
-    2,2,2,2,  2,2,2,2,  -1,-1,-1,-1,  -5,-5,-5,-5,
-    4,4,4,4,  -1,-1,-1,-1,  0,0,0,0,  0,0,0,0,
-    4,4,4,4,  4,4,4,4,  1,1,1,1,  2,2,2,2
-  };
+  // height = 4;
+  // width = 4;
+  // unsigned char image[4][4] = {
+  //   -4,-4,-4,-4,  0,0,0,0,  4,4,4,4,  3,3,3,3,
+  //   2,2,2,2,  2,2,2,2,  -1,-1,-1,-1,  -5,-5,-5,-5,
+  //   4,4,4,4,  -1,-1,-1,-1,  0,0,0,0,  0,0,0,0,
+  //   4,4,4,4,  4,4,4,4,  1,1,1,1,  2,2,2,2
+  // };
 
 
 
@@ -76,69 +114,72 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     // #pragma omp parallel for num_threads(NUM_THREADS)
     for (int j = 1; j <= (width - 2); j++)
     {
-      int adder = 0;
-      unsigned char neighboursR[] = {image[(4 * width * i - (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j + 4) + adder],
+      unsigned char neighboursR[] = {
+        image[get_index(i, j, -1, -1, R)],
+        image[get_index(i, j, -1, 0, R)],
+        image[get_index(i, j, -1, 1, R)],
 
-                           image[(4 * width * i) + (4 * j - 4) + adder],
-                           image[(4 * width * i) + (4 * j) + adder],
-                           image[(4 * width * i) + (4 * j + 4) + adder],
+        image[get_index(i, j, 0, -1, R)],
+        image[get_index(i, j, 0, 0, R)],
+        image[get_index(i, j, 0, 1, R)],
 
-                           image[(4 * width * i + (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j + 4) + adder]
-                          };
-      adder++;
-      unsigned char neighboursG[] = {image[(4 * width * i - (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j + 4) + adder],
+        image[get_index(i, j, 1, -1, R)],
+        image[get_index(i, j, 1, 0, R)],
+        image[get_index(i, j, 1, 1, R)]
+      };
 
-                           image[(4 * width * i) + (4 * j - 4) + adder],
-                           image[(4 * width * i) + (4 * j) + adder],
-                           image[(4 * width * i) + (4 * j + 4) + adder],
+      unsigned char neighboursG[] = {
+        image[get_index(i, j, -1, -1, G)],
+        image[get_index(i, j, -1, 0, G)],
+        image[get_index(i, j, -1, 1, G)],
 
-                           image[(4 * width * i + (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j + 4) + adder]
-                          };
-      adder++;
-      unsigned char neighboursB[] = {image[(4 * width * i - (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j + 4) + adder],
+        image[get_index(i, j, 0, -1, G)],
+        image[get_index(i, j, 0, 0, G)],
+        image[get_index(i, j, 0, 1, G)],
 
-                           image[(4 * width * i) + (4 * j - 4) + adder],
-                           image[(4 * width * i) + (4 * j) + adder],
-                           image[(4 * width * i) + (4 * j + 4) + adder],
+        image[get_index(i, j, 1, -1, G)],
+        image[get_index(i, j, 1, 0, G)],
+        image[get_index(i, j, 1, 1, G)]
+      };
+      unsigned char neighboursB[] = {
+        image[get_index(i, j, -1, -1, B)],
+        image[get_index(i, j, -1, 0, B)],
+        image[get_index(i, j, -1, 1, B)],
 
-                           image[(4 * width * i + (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j + 4) + adder]
-                          };
-      adder++;
-      unsigned char neighboursA[] = {image[(4 * width * i - (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i - (4 * width)) + (4 * j + 4) + adder],
+        image[get_index(i, j, 0, -1, B)],
+        image[get_index(i, j, 0, 0, B)],
+        image[get_index(i, j, 0, 1, B)],
 
-                           image[(4 * width * i) + (4 * j - 4) + adder],
-                           image[(4 * width * i) + (4 * j) + adder],
-                           image[(4 * width * i) + (4 * j + 4) + adder],
+        image[get_index(i, j, 1, -1, B)],
+        image[get_index(i, j, 1, 0, B)],
+        image[get_index(i, j, 1, 1, B)]
+      };
+      unsigned char neighboursA[] =
+      { image[get_index(i, j, -1, -1, A)],
+        image[get_index(i, j, -1, 0, A)],
+        image[get_index(i, j, -1, 1, A)],
 
-                           image[(4 * width * i + (4 * width)) + (4 * j - 4) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j) + adder],
-                           image[(4 * width * i + (4 * width)) + (4 * j + 4) + adder]
-                          };
+        image[get_index(i, j, 0, -1, A)],
+        image[get_index(i, j, 0, 0, A)],
+        image[get_index(i, j, 0, 1, A)],
 
-      // new_image[4 * width * (i - 1) + 4 * (j - 4) + 0] = normalize(multiply_with_weights(neighboursR));
+        image[get_index(i, j, 1, -1, A)],
+        image[get_index(i, j, 1, 0, A)],
+        image[get_index(i, j, 1, 1, A)]
+      };
 
-      new_image[counter] = normalize(multiply_with_weights(neighboursR));
-      counter++;
-      new_image[counter] = normalize(multiply_with_weights(neighboursG));
-      counter++;
-      new_image[counter] = normalize(multiply_with_weights(neighboursB));
-      counter++;
-      new_image[counter] = normalize(multiply_with_weights(neighboursA));
-      counter++;
+
+      new_image[get_index_for_new_image(i, j, R)] = normalize(multiply_with_weights(neighboursR));
+      // counter++;
+      new_image[get_index_for_new_image(i, j, G)] = normalize(multiply_with_weights(neighboursG));
+      // counter++;
+      new_image[get_index_for_new_image(i, j, B)] = normalize(multiply_with_weights(neighboursB));
+      // counter++;
+      new_image[get_index_for_new_image(i, j, A)] = normalize(multiply_with_weights(neighboursA));
+      // counter++;
+
+
+
       // new_image[4 * width * i + 4 * j + 0] = convolveOp(i, j, );                       // R
       // new_image[4 * width * i + 4 * j + 1] = rectOp(image[4 * width * i + 4 * j + 1]); // G
       // new_image[4 * width * i + 4 * j + 2] = rectOp(image[4 * width * i + 4 * j + 2]); // B
@@ -151,36 +192,36 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
       // return;
     }
   }
-  printf("counter is %d\n", counter);
+// printf("counter is %d\n", counter);
   printf("height is %d\n", height);
   printf("width is %d\n", width);
   printf("height - 2 x width - 2 * 4 is %d\n", (height - 2) * (width - 2) * 4);
 
-  printf("This is new image:\n");
+// printf("This is new image:\n");
 
-  for(int i =0; i < height - 2; i++) {
-    for (int j = 0; j < width -2; j++) {
-      printf("R: %d ", new_image[i][j+0]);
-      printf("G: %d ", new_image[i][j+1]);
-      printf("B: %d ", new_image[i][j+2]);
-      printf("A: %d ", new_image[i][j+3]);
-    }
-    printf("\n");
-  }
+// for(int i =0; i < height - 2; i++) {
+//   for (int j = 0; j < width -2; j++) {
+//     printf("R: %d ", new_image[i][j+0]);
+//     printf("G: %d ", new_image[i][j+1]);
+//     printf("B: %d ", new_image[i][j+2]);
+//     printf("A: %d ", new_image[i][j+3]);
+//   }
+//   printf("\n");
+// }
 
 
-  // #pragma omp parallel num_threads(NUM_THREADS)
-  //   {
-  //     int tid = omp_get_thread_num();
-  //     int chunk_size = (height * width * 4) / omp_get_num_threads();
-  //     int start_idx = tid * chunk_size;
-  //     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width * 4) : start_idx + chunk_size;
-  //     int idx;
-  //     for (idx = start_idx; idx < end_idx; idx++)
-  //     {
-  //       new_image[idx] = rectOp(image[idx]);
-  //     }
-  //   }
+// #pragma omp parallel num_threads(NUM_THREADS)
+//   {
+//     int tid = omp_get_thread_num();
+//     int chunk_size = (height * width * 4) / omp_get_num_threads();
+//     int start_idx = tid * chunk_size;
+//     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width * 4) : start_idx + chunk_size;
+//     int idx;
+//     for (idx = start_idx; idx < end_idx; idx++)
+//     {
+//       new_image[idx] = rectOp(image[idx]);
+//     }
+//   }
 
   lodepng_encode32_file(output_filename, new_image, width, height);
 
