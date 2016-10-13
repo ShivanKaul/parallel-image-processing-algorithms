@@ -4,12 +4,6 @@
 
 int poolOp(unsigned char *i, int p, unsigned width)
 {
-  if ((p / (width*4)) % 2 == 1) {
-    //printf ("\nIndex is at %i \n Increment it by the width %u", idx, width);
-    //idx += width*4;
-  } else {
-    //printf ("\nIndex is at %i and No need to increment by the width", idx);
-  }
   return MAX(i[p], MAX(i[p + 4], MAX(i[p + (width * 4)], i[p + (width * 4) + 4])));
 }
 
@@ -25,19 +19,6 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc(width * height * sizeof(unsigned char));
 
-// process image
-// #pragma omp parallel for num_threads(NUM_THREADS)
-//   for (int i = 0; i < height; i++)
-//   {
-//     for (int j = 0; j < width; j++)
-//     {
-//       new_image[4 * width * i + 4 * j + 0] = rectOp(image[4 * width * i + 4 * j + 0]); // R
-//       new_image[4 * width * i + 4 * j + 1] = rectOp(image[4 * width * i + 4 * j + 1]); // G
-//       new_image[4 * width * i + 4 * j + 2] = rectOp(image[4 * width * i + 4 * j + 2]); // B
-//       new_image[4 * width * i + 4 * j + 3] = image[4 * width * i + 4 * j + 3];         // A
-//     }
-//   }
-
 #pragma omp parallel num_threads(NUM_THREADS)
   {
     int tid = omp_get_thread_num();
@@ -51,7 +32,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
       if (idx > 0 && idx % 4 == 0) {
         pos += 4;
       }
-      if (idx % (width * 2) == 0 && idx != 0) {//(pos / (width * 4)) % 2 == 1) {
+      if (idx % (width * 2) == 0 && idx != 0) {
         pos += width * 4;
       }
       int ang = poolOp(image, pos, width);
