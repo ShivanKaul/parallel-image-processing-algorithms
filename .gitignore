@@ -42,3 +42,6 @@ CONSUMER_KEY*
 
 # PDF
 Lab_1.pdf
+
+# vim backup files
+*.~
