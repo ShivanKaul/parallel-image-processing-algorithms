@@ -22,11 +22,13 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
 #pragma omp parallel num_threads(NUM_THREADS)
   {
     int tid = omp_get_thread_num();
-    int chunk_size = (height * width) / omp_get_num_threads();
+    int chunk_size = (height/2 * width/2 * 4) / omp_get_num_threads();
     int start_idx = tid * chunk_size;
     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width) : start_idx + chunk_size;
     int idx = start_idx;
-    int pos = (2 * (idx / (width * 2)) * width * 4) + (2 * (idx % (width * 2)));
+    int pos = (2 * (idx / (width * 2)) * width * 4) + (idx%(width * 2) * 2); //(2 * (idx % (width * 2)));
+    //printf ("\n start indx = %i and end_idx = %i \n With pos %i with offset idx:pos %i:%i at tid: %i out of %i \n", start_idx, end_idx, pos, pos%4, idx%4, tid, omp_get_num_threads());
+    pos += 4 - ((pos% 4 ) - (idx % 4));
     for (idx = start_idx; idx < end_idx; idx++)
     {
       if (idx > 0 && idx % 4 == 0) {
@@ -75,7 +77,7 @@ int main(int argc, char *argv[])
     total_time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
   }
   double avg_time_spent = total_time_spent / NUM_REPS;
-  printf("Average time spent in pool with %d threads (after running %d times) : %f s", NUM_THREADS, NUM_REPS, avg_time_spent);
+  printf("Average time spent in pool with %d threads (after running %d times) : %f s\n", NUM_THREADS, NUM_REPS, avg_time_spent);
 
   return 0;
 }
