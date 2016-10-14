@@ -39,6 +39,10 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     printf ("Originx: %i ; Originy: %i ....... NewX: %i (%i) ; NewY: %i\n", pos%(width*4), pos/(width*4), idx%(width*2), 2*(idx%(width*2)), idx/(width*2));
     //pos -= ((pos% 4 ) - (idx % 4));
     pos -= idx%4;
+    if (idx%4 == 0 && tid != 0) {
+        pos -= 4;
+    }
+    //pos -= ((tid/4) * 4);
     printf ("Actually being at Originx: %i ; Originy: %i \n", pos%(width*4), pos/(width*4));
     //pos -= (pos%(width*4) - 2*(idx%(width*2)));
    // pos += 4 - ((pos% 4 ) - (idx % 4));
