@@ -2,6 +2,11 @@
 
 #define MAX(a,b) ((a) > (b) ? a : b)
 
+clock_t beginLoad;
+clock_t endLoad;
+clock_t beginStore;
+clock_t endStore;
+
 int poolOp(unsigned char *i, int p, unsigned width)
 {
   return MAX(i[p], MAX(i[p + 4], MAX(i[p + (width * 4)], i[p + (width * 4) + 4])));
@@ -9,6 +14,7 @@ int poolOp(unsigned char *i, int p, unsigned width)
 
 void process(char *input_filename, char *output_filename, int NUM_THREADS)
 {
+  beginLoad = clock();
   unsigned error;
   unsigned char *image, *new_image;
   unsigned width, height;
@@ -18,6 +24,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
   if (error)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc(width * height * sizeof(unsigned char));
+  endLoad = clock();
 
 #pragma omp parallel num_threads(NUM_THREADS)
   {
@@ -44,7 +51,9 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     //printf("\n %i \n", idx);
   }
 
+  beginStore = clock();
   lodepng_encode32_file(output_filename, new_image, width/2, height/2);
+  endStore = clock();
 
   free(image);
   free(new_image);
@@ -74,7 +83,7 @@ int main(int argc, char *argv[])
     begin = clock();
     process(input_filename, output_filename, NUM_THREADS);
     end = clock();
-    total_time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+    total_time_spent += (double)(end - begin - (endLoad - beginLoad) - (endStore - beginStore)) / CLOCKS_PER_SEC;
   }
   double avg_time_spent = total_time_spent / NUM_REPS;
   printf("Average time spent in pool with %d threads (after running %d times) : %f s\n", NUM_THREADS, NUM_REPS, avg_time_spent);

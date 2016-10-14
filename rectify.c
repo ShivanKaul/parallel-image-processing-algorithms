@@ -1,5 +1,10 @@
 #include "rectify.h"
 
+clock_t beginLoad;
+clock_t endLoad;
+clock_t beginStore;
+clock_t endStore;
+
 int rectOp(unsigned char i)
 {
   return (i < 127) ? 127 : i;
@@ -7,6 +12,7 @@ int rectOp(unsigned char i)
 
 void process(char *input_filename, char *output_filename, int NUM_THREADS)
 {
+  beginLoad = clock();
   unsigned error;
   unsigned char *image, *new_image;
   unsigned width, height;
@@ -16,7 +22,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
   if (error)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc(width * height * 4 * sizeof(unsigned char));
-
+  endLoad = clock();
 // process image
 // #pragma omp parallel for num_threads(NUM_THREADS)
 //   for (int i = 0; i < height; i++)
@@ -43,7 +49,9 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     }
   }
 
+  beginStore = clock();
   lodepng_encode32_file(output_filename, new_image, width, height);
+  endStore = clock();
 
   free(image);
   free(new_image);
@@ -72,7 +80,7 @@ int main(int argc, char *argv[])
     begin = clock();
     process(input_filename, output_filename, NUM_THREADS);
     end = clock();
-    total_time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+    total_time_spent += (double)(end - begin - (endLoad - beginLoad) - (endStore - beginStore)) / CLOCKS_PER_SEC;
   }
   double avg_time_spent = total_time_spent / NUM_REPS;
   printf("Average time spent in rectify with %d threads (after running %d times) : %f s", NUM_THREADS, NUM_REPS, avg_time_spent);
