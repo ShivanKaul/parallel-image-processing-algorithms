@@ -4,21 +4,6 @@
 int width;
 unsigned char *image;
 
-// Helper function for the matrix multiplication
-float convolveOp(unsigned char neighbours[])
-{
-  float sum = 0.0;
-  int i, j;
-  for (i = 0; i < 3; i++)
-  {
-    for (j = 0; j < 3; j++)
-    {
-      sum += neighbours[i * 3 + j] * w[i][j];
-    }
-  }
-  return sum;
-}
-
 // Helper function for getting index for the new image
 int get_index_for_new_image(int i, int j, int channel)
 {
@@ -32,21 +17,19 @@ int get_index(int curRow, int curCol, int rowPos, int colPos, int channel)
   return (4 * width * curRow + ((4 * width) * rowPos)) + (4 * curCol + (4 * colPos)) + channel;
 }
 
-// Helper function to get the neighbours
-unsigned char *get_neighbours(int i, int j, int channel)
+// Helper function for the matrix multiplication
+float convolveOp(int i, int j, int channel)
 {
-  unsigned char *neighbours = malloc(9 * sizeof(unsigned char));
-  int counter = 0;
+  float sum = 0.0;
   int r, c;
   for (r = -1; r <= 1; r++)
   {
     for (c = -1; c <= 1; c++)
     {
-      neighbours[counter] = image[get_index(i, j, r, c, channel)];
-      counter++;
+      sum += image[get_index(i, j, r, c, channel)] * w[r + 1][c + 1];
     }
   }
-  return neighbours;
+  return sum;
 }
 
 // Clamp the output
@@ -69,21 +52,17 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc((width - 4) * (height - 4) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
 
-// process image
-int i, j;
+  // process image
+  int i, j;
 #pragma omp parallel for num_threads(NUM_THREADS)
   for (i = 1; i < height - 1; i++)
   {
 #pragma omp parallel for num_threads(NUM_THREADS)
     for (j = 1; j < width - 1; j++)
     {
-      unsigned char *neighboursR = get_neighbours(i, j, R);
-      unsigned char *neighboursG = get_neighbours(i, j, G);
-      unsigned char *neighboursB = get_neighbours(i, j, B);
-
-      new_image[get_index_for_new_image(i, j, R)] = clamp(convolveOp(neighboursR));
-      new_image[get_index_for_new_image(i, j, G)] = clamp(convolveOp(neighboursG));
-      new_image[get_index_for_new_image(i, j, B)] = clamp(convolveOp(neighboursB));
+      new_image[get_index_for_new_image(i, j, R)] = clamp(convolveOp(i, j, R));
+      new_image[get_index_for_new_image(i, j, G)] = clamp(convolveOp(i, j, G));
+      new_image[get_index_for_new_image(i, j, B)] = clamp(convolveOp(i, j, B));
       new_image[get_index_for_new_image(i, j, A)] = 255; // idgaf
     }
   }
