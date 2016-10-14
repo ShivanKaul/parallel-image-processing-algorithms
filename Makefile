@@ -11,13 +11,13 @@ rectifymac: rectify.c rectify.h
 	gcc-6 -g  -o rectify rectify.c lodepng.c  -fopenmp
 
 convolve: convolve.c convolve.h
-	gcc -g  -o convolve convolve.c lodepng.c  -fopenmp
+	gcc -g -std=c99 -o convolve convolve.c lodepng.c  -fopenmp
 
 convolvemac: convolve.c convolve.h
 	gcc-6 -g  -o convolve convolve.c lodepng.c  -fopenmp
 
 test:
-	gcc test_equality.c lodepng.c -lm
+	gcc -std=c99 test_equality.c lodepng.c -lm
 
 testmac:
 	gcc test_equality.c lodepng.c
