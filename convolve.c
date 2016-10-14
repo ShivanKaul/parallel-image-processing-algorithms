@@ -3,6 +3,10 @@
 // Global variables because ugh C
 int width;
 unsigned char *image;
+clock_t beginLoad;
+clock_t endLoad;
+clock_t beginStore;
+clock_t endStore;
 
 // Helper function for getting index for the new image
 int get_index_for_new_image(int i, int j, int channel)
@@ -42,6 +46,7 @@ int clamp(float num)
 
 void process(char *input_filename, char *output_filename, int NUM_THREADS)
 {
+  beginLoad = clock();
   unsigned error;
   unsigned char *new_image;
   unsigned height;
@@ -51,7 +56,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
   if (error)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc((width - 2) * (height - 2) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
-
+  endLoad = clock();
   // process image
   int i, j;
 #pragma omp parallel for num_threads(NUM_THREADS)
@@ -67,8 +72,10 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     }
   }
 
+  beginStore = clock();
   // Save to disk
   lodepng_encode32_file(output_filename, new_image, width - 2, height - 2);
+  endStore = clock();
 
   free(image);
   free(new_image);
@@ -97,7 +104,7 @@ int main(int argc, char *argv[])
     begin = clock();
     process(input_filename, output_filename, NUM_THREADS);
     end = clock();
-    total_time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+    total_time_spent += (double)(end - begin - (endLoad - beginLoad) - (endStore - beginStore)) / CLOCKS_PER_SEC;
   }
   double avg_time_spent = total_time_spent / NUM_REPS;
   printf("Average time spent in convolve with %d threads (after running %d times) : %f s\n", NUM_THREADS, NUM_REPS, avg_time_spent);
