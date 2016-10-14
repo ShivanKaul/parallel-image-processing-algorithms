@@ -1,30 +1,24 @@
-pool: pool.c pool.h
-	gcc -g  -o pool pool.c lodepng.c  -fopenmp
+UNAME := $(shell uname)
+CC = gcc 
+ifeq ($(UNAME), Darwin)
+	CC = gcc-6
+endif
 
-poolmac: pool.c pool.h
-	gcc-6 -g  -o pool pool.c lodepng.c  -fopenmp
+pool: pool.c pool.h
+	$(CC) -g  -o pool pool.c lodepng.c  -fopenmp
 
 rectify: rectify.c rectify.h
-	gcc -g  -o rectify rectify.c lodepng.c  -fopenmp
-
-rectifymac: rectify.c rectify.h
-	gcc-6 -g  -o rectify rectify.c lodepng.c  -fopenmp
+	$(CC) -g  -o rectify rectify.c lodepng.c  -fopenmp
 
 convolve: convolve.c convolve.h
-	gcc -g -o convolve convolve.c lodepng.c  -fopenmp
-
-convolvemac: convolve.c convolve.h
-	gcc-6 -g  -o convolve convolve.c lodepng.c  -fopenmp
+	$(CC) -g -o convolve convolve.c lodepng.c  -fopenmp
 
 test:
-	gcc -std=c99 test_equality.c lodepng.c -lm
-
-testmac:
-	gcc test_equality.c lodepng.c
+	$(CC) -std=c99 test_equality.c lodepng.c -lm
 
 clean:
-	-rm rectify
-	-rm pool
-	-rm convolve
-	-rm shivan*
-	-rm -r rectify.dSYM
+	-rm rectify -f
+	-rm pool -f
+	-rm convolve -f
+	-rm shivan* -f
+	-rm -r rectify.dSYM -f
