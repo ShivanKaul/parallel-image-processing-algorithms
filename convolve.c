@@ -8,9 +8,10 @@ unsigned char *image;
 float convolveOp(unsigned char neighbours[])
 {
   float sum = 0.0;
-  for (int i = 0; i < 3; i++)
+  int i, j;
+  for (i = 0; i < 3; i++)
   {
-    for (int j = 0; j < 3; j++)
+    for (j = 0; j < 3; j++)
     {
       sum += neighbours[i * 3 + j] * w[i][j];
     }
@@ -36,9 +37,10 @@ unsigned char *get_neighbours(int i, int j, int channel)
 {
   unsigned char *neighbours = malloc(9 * sizeof(unsigned char));
   int counter = 0;
-  for (int r = -1; r <= 1; r++)
+  int r, c;
+  for (r = -1; r <= 1; r++)
   {
-    for (int c = -1; c <= 1; c++)
+    for (c = -1; c <= 1; c++)
     {
       neighbours[counter] = image[get_index(i, j, r, c, channel)];
       counter++;
@@ -68,11 +70,12 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
   new_image = malloc((width - 4) * (height - 4) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
 
 // process image
+int i, j;
 #pragma omp parallel for num_threads(NUM_THREADS)
-  for (int i = 1; i < height - 1; i++)
+  for (i = 1; i < height - 1; i++)
   {
 #pragma omp parallel for num_threads(NUM_THREADS)
-    for (int j = 1; j < width - 1; j++)
+    for (j = 1; j < width - 1; j++)
     {
       unsigned char *neighboursR = get_neighbours(i, j, R);
       unsigned char *neighboursG = get_neighbours(i, j, G);
