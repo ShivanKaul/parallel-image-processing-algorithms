@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     total_time_spent += (double)(end - begin - (endLoad - beginLoad) - (endStore - beginStore)) / CLOCKS_PER_SEC;
   }
   double avg_time_spent = total_time_spent / NUM_REPS;
-  printf("Average time spent in rectify with %d threads (after running %d times) : %f s", NUM_THREADS, NUM_REPS, avg_time_spent);
+  printf("Average time spent in rectify with %d threads (after running %d times) : %f s\n", NUM_THREADS, NUM_REPS, avg_time_spent);
 
   return 0;
 }
