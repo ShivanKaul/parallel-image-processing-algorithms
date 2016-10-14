@@ -33,16 +33,21 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     int start_idx = tid * chunk_size;
     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width) : start_idx + chunk_size;
     int idx = start_idx;
-    int pos = (2 * (idx / (width * 2)) * width * 4) + (idx%(width * 2) * 2); //(2 * (idx % (width * 2)));
+    int pos = (2 * (idx / (width * 2)) * width * 4) + (2 * (idx%(width * 2))); //(2 * (idx % (width * 2)));
     printf ("\n start indx = %i and end_idx = %i \n With pos %i with offset idx:pos %i:%i at tid: %i out of %i \n", start_idx, end_idx, pos, pos%4, idx%4, tid, omp_get_num_threads());
-    pos -= ((pos% 4 ) - (idx % 4));
-    //pos += 4 - ((pos% 4 ) - (idx % 4));
+    printf ("Supposed to be at %i but at %i with an offset of %i bits; %i pixels\n", idx*4, pos, pos - idx*4, (pos - idx*4)/4);
+    printf ("Originx: %i ; Originy: %i ....... NewX: %i (%i) ; NewY: %i\n", pos%(width*4), pos/(width*4), idx%(width*2), 2*(idx%(width*2)), idx/(width*2));
+    //pos -= ((pos% 4 ) - (idx % 4));
+    pos -= idx%4;
+    printf ("Actually being at Originx: %i ; Originy: %i \n", pos%(width*4), pos/(width*4));
+    //pos -= (pos%(width*4) - 2*(idx%(width*2)));
+   // pos += 4 - ((pos% 4 ) - (idx % 4));
     for (idx = start_idx; idx < end_idx; idx++)
     {
       if (idx > 0 && idx % 4 == 0) {
         pos += 4;
       }
-      if (idx % (width * 2) == 0 && idx != 0) {
+      if (idx % (width * 2) == 0 && idx != 0 || (pos / (width * 4)) % 2 ==1) {
         pos += width * 4;
       }
       int ang = poolOp(image, pos, width);
@@ -50,6 +55,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
       pos++;
     }
     //printf("\n %i \n", idx);
+    printf ("\ntid %i finished at pos: %i ; idx: %i \n Originx: %i ; Originy: %i ....... NewX: %i (%i) ; NewY: %i\n", tid, pos, idx, pos%(width*4), pos/(width*4), idx%(width*2), 2*(idx%(width*2)), idx/(width*2));
   }
 
   beginStore = clock();
