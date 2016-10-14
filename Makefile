@@ -23,7 +23,8 @@ testmac:
 	gcc test_equality.c lodepng.c
 
 clean:
-	rm rectify
-	rm pool
-	rm shivan*
-	rm -r rectify.dSYM
+	-rm rectify
+	-rm pool
+	-rm convolve
+	-rm shivan*
+	-rm -r rectify.dSYM

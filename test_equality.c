@@ -15,8 +15,8 @@ float get_MSE(char* input_filename_1, char* input_filename_2)
   error2 = lodepng_decode32_file(&image2, &width2, &height2, input_filename_2);
   if(error1) printf("error %u: %s\n", error1, lodepng_error_text(error1));
   if(error2) printf("error %u: %s\n", error2, lodepng_error_text(error2));
-  if(width1 != width2) printf("images do not have same width\n");
-  if(height1 != height2) printf("images do not have same height\n");
+  if(width1 != width2) printf("images do not have same width, image1 has width %d and image2 has width %d\n", width1, width2);
+  if(height1 != height2) printf("images do not have same height, image1 has height %d and image2 has height %d\n\n", height1, height2);
 
   // process image
   float im1, im2, diff, sum, MSE;
