@@ -57,18 +57,30 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc((width - 2) * (height - 2) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
   endLoad = clock();
+
   // process image
-  int i, j;
-#pragma omp parallel for num_threads(NUM_THREADS)
-  for (i = 1; i < height - 1; i++)
+  #pragma omp parallel num_threads(NUM_THREADS)
   {
-#pragma omp parallel for num_threads(NUM_THREADS)
-    for (j = 1; j < width - 1; j++)
+    int tid = omp_get_thread_num();
+    int chunk_size = ((height - 2) * (width - 2)) / omp_get_num_threads();
+    int start_idx = tid * chunk_size + (width) + 1;
+    int end_idx = (tid == omp_get_num_threads() - 1) ? (width * (height - 1)) - 1 : start_idx + chunk_size;
+    int idx;
+    for (idx = start_idx; idx < end_idx; idx++)
     {
-      new_image[get_index_for_new_image(i, j, R)] = clamp(convolveOp(i, j, R));
-      new_image[get_index_for_new_image(i, j, G)] = clamp(convolveOp(i, j, G));
-      new_image[get_index_for_new_image(i, j, B)] = clamp(convolveOp(i, j, B));
-      new_image[get_index_for_new_image(i, j, A)] = 255; // idgaf
+      if (idx % width == 0) {
+        idx++;
+      }
+      else if (idx % width == width - 1) {
+        idx += 2;
+      }
+      if (idx >= end_idx) {
+        break;
+      }
+      new_image[get_index_for_new_image(idx / (width), (idx % (width)), R)] = clamp(convolveOp(idx / width, (idx % (width)), R));
+      new_image[get_index_for_new_image(idx / (width), (idx % (width)), G)] = clamp(convolveOp(idx / width, (idx % (width)), G));
+      new_image[get_index_for_new_image(idx / (width), (idx % (width)), B)] = clamp(convolveOp(idx / width, (idx % (width)), B));
+      new_image[get_index_for_new_image(idx / (width), (idx % (width)), A)] = 255; // idgaf
     }
   }
 
