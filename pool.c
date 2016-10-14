@@ -34,8 +34,9 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     int end_idx = (tid == omp_get_num_threads() - 1) ? (height * width) : start_idx + chunk_size;
     int idx = start_idx;
     int pos = (2 * (idx / (width * 2)) * width * 4) + (idx%(width * 2) * 2); //(2 * (idx % (width * 2)));
-    //printf ("\n start indx = %i and end_idx = %i \n With pos %i with offset idx:pos %i:%i at tid: %i out of %i \n", start_idx, end_idx, pos, pos%4, idx%4, tid, omp_get_num_threads());
-    pos += 4 - ((pos% 4 ) - (idx % 4));
+    printf ("\n start indx = %i and end_idx = %i \n With pos %i with offset idx:pos %i:%i at tid: %i out of %i \n", start_idx, end_idx, pos, pos%4, idx%4, tid, omp_get_num_threads());
+    pos -= ((pos% 4 ) - (idx % 4));
+    //pos += 4 - ((pos% 4 ) - (idx % 4));
     for (idx = start_idx; idx < end_idx; idx++)
     {
       if (idx > 0 && idx % 4 == 0) {
