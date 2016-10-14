@@ -11,7 +11,7 @@ rectifymac: rectify.c rectify.h
 	gcc-6 -g  -o rectify rectify.c lodepng.c  -fopenmp
 
 convolve: convolve.c convolve.h
-	gcc -g -std=c99 -o convolve convolve.c lodepng.c  -fopenmp
+	gcc -g -o convolve convolve.c lodepng.c  -fopenmp
 
 convolvemac: convolve.c convolve.h
 	gcc-6 -g  -o convolve convolve.c lodepng.c  -fopenmp
