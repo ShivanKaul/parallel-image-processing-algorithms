@@ -50,7 +50,7 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
   error = lodepng_decode32_file(&image, &width, &height, input_filename);
   if (error)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
-  new_image = malloc((width - 4) * (height - 4) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
+  new_image = malloc((width - 2) * (height - 2) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
 
   // process image
   int i, j;
