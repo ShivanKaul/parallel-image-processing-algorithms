@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
   if (argc < 4)
   {
     printf("Incorrect arguments! Input format: ./pool <name of input png> <name of output png> < # threads> \n");
-    return;
+    return 1;
   }
   int NUM_REPS = 1;
   if (argc == 5)

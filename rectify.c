@@ -62,6 +62,7 @@ int main(int argc, char *argv[])
   if (argc < 4)
   {
     printf("Incorrect arguments! Input format: ./rectify <name of input png> <name of output png> < # threads> \n");
+    return 1;
   }
   int NUM_REPS = 1;
   if (argc == 5)

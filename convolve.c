@@ -57,8 +57,28 @@ void process(char *input_filename, char *output_filename, int NUM_THREADS)
     printf("Error %u in lodepng: %s\n", error, lodepng_error_text(error));
   new_image = malloc((width - 2) * (height - 2) * 4 * sizeof(unsigned char)); // m - 2 x n - 2
   endLoad = clock();
-
   // process image
+
+  // NOTE: EXPERIMENT WITH HAVING MULTIPLE PRAGMAS WITH FOR LOOPS. THIS WORKS.
+  // int i;
+  // #pragma omp parallel for private(i) num_threads(NUM_THREADS)
+  // for (i = 1; i < height - 1; i++)
+  // {
+  //   int j;
+  // #pragma omp parallel for private(j) num_threads(NUM_THREADS)
+
+  //   // #pragma omp parallel for num_threads(NUM_THREADS)
+  //   for (j = 1; j < width - 1; j++)
+  //   {
+  //     // printf("thread id is %d\n", omp_get_thread_num());
+  //     new_image[get_index_for_new_image(i, j, R)] = clamp(convolveOp(i, j, R));
+  //     new_image[get_index_for_new_image(i, j, G)] = clamp(convolveOp(i, j, G));
+  //     new_image[get_index_for_new_image(i, j, B)] = clamp(convolveOp(i, j, B));
+  //     new_image[get_index_for_new_image(i, j, A)] = 255; // idgaf
+  //   }
+  // }
+
+
   #pragma omp parallel num_threads(NUM_THREADS)
   {
     int tid = omp_get_thread_num();
@@ -98,6 +118,7 @@ int main(int argc, char *argv[])
   if (argc < 4)
   {
     printf("Incorrect arguments! Input format: ./convolve <name of input png> <name of output png> < # threads> \n");
+    return 1;
   }
   int NUM_REPS = 1;
   if (argc == 5)
